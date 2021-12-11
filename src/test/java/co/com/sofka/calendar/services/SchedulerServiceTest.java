@@ -90,13 +90,13 @@ class SchedulerServiceTest {
         var startDate = LocalDate.of(2022, 1, 1);
 
         Mockito.when(repository.findById(programId)).thenReturn(Mono.empty());
+        Flux<ProgramDate> programDateFlux = schedulerService.generateCalendar(programId, startDate);
 
-        //TODO: hacer de otro modo
-        var exception = Assertions.assertThrows(RuntimeException.class, () -> {
-            schedulerService.generateCalendar(programId, startDate);//TODO: hacer una subscripción de el servicio reactivo
+        StepVerifier.create(programDateFlux)
+                .expectErrorMatches(throwable -> throwable instanceof IllegalArgumentException &&
+                        throwable.getMessage().equals("Mensaje de Error"))
+                .verify();
 
-        });
-        Assertions.assertEquals("El programa academnico no existe", exception.getMessage());//TODO: hacer de otro modo
         Mockito.verify(repository).findById(programId);
 
     }

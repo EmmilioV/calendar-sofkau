@@ -25,7 +25,6 @@ public class SchedulerService {
     @Autowired
     private ProgramRepository programRepository;
 
-    //TODO: deben retornar un flux de programDate Flux<ProgramDate>
     public Flux<ProgramDate> generateCalendar(String programId, LocalDate startDate) {
         var endDate = new AtomicReference<>(LocalDate.from(startDate));
         final AtomicInteger[] pivot = {new AtomicInteger()};
@@ -34,7 +33,7 @@ public class SchedulerService {
         Mono<Program> program1 = programRepository.findById(programId);
         return program1.flatMapMany(programa -> Flux.fromStream(getDurationOf(programa)))
                 .map(toProgramDate(startDate, endDate, pivot[0], index))
-                .switchIfEmpty(Mono.error(new RuntimeException("Error")));
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("Mensaje de Error")));
     }
 
     //No tocar
