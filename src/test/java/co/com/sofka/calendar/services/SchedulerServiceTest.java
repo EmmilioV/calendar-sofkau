@@ -13,7 +13,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -34,15 +36,51 @@ class SchedulerServiceTest {
     void generateCalendar() {
         var programId = "xxxx";
         var startDate = LocalDate.of(2022, 1, 1);
-
         Program program = getProgramDummy();
 
         Mockito.when(repository.findById(programId)).thenReturn(Mono.just(program));
-        //TODO: hacer una subscripción de el servicio reactivo
-        List<ProgramDate> response = schedulerService.generateCalendar(programId, startDate);
 
-        Assertions.assertEquals(13, response.size());//TODO: hacer de otro modo
-        Assertions.assertEquals(getSnapResult(), new Gson().toJson(response));//TODO: hacer de otro modo
+        Flux<ProgramDate> programDateFlux = schedulerService.generateCalendar(programId, startDate);
+
+        StepVerifier.create(programDateFlux)
+                .expectNextMatches(programDate -> {
+                    return programDate.getDate().toString().equals("2022-01-03")
+                            && programDate.getCategoryName().equals("Principios");
+                })
+                .expectNextMatches(programDate -> {
+                    return programDate.getDate().toString().equals("2022-01-04")
+                            && programDate.getCategoryName().equals("Principios");
+                })
+                .expectNextMatches(programDate -> {
+                    return programDate.getDate().toString().equals("2022-01-05")
+                            && programDate.getCategoryName().equals("Bases");
+                })
+                .expectNextMatches(programDate -> {
+                    return programDate.getDate().toString().equals("2022-01-06")
+                            && programDate.getCategoryName().equals("Bases");
+                })
+                .expectNextMatches(programDate -> {
+                    return programDate.getDate().toString().equals("2022-01-07")
+                            && programDate.getCategoryName().equals("Fundamentos");
+                })
+                .expectNextMatches(programDate -> {
+                    return programDate.getDate().toString().equals("2022-01-10")
+                            && programDate.getCategoryName().equals("Fundamentos");
+                })
+                .expectNextMatches(programDate -> {
+                    return programDate.getDate().toString().equals("2022-01-11")
+                            && programDate.getCategoryName().equals("Fundamentos");
+                })
+                .expectNextMatches(programDate -> {
+                    return programDate.getDate().toString().equals("2022-01-12")
+                            && programDate.getCategoryName().equals("Fundamentos");
+                })
+                .verifyComplete();
+
+        StepVerifier.create(programDateFlux)
+                .expectNextCount(8)
+                .verifyComplete();
+
         Mockito.verify(repository).findById(programId);
     }
 
@@ -73,7 +111,7 @@ class SchedulerServiceTest {
         timesForCourse1.add(new Time("1", 2, "Principios", List.of()));
         timesForCourse1.add(new Time("2", 2, "Bases", List.of()));
         timesForCourse1.add(new Time("3", 4, "Fundamentos", List.of()));
-        timesForCourse1.add(new Time("3", 5, "Fundamentos avazandos", List.of()));
+        //timesForCourse1.add(new Time("3", 5, "Fundamentos avazandos", List.of()));
 
         program.getCourses().add(new CourseTime("xxx-z", "Introducción", timesForCourse1));
         return program;
